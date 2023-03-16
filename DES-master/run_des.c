@@ -50,14 +50,13 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        ///// UNSAFE ///////////////////////////////////////
+        // No es recomendable usar time() para establecer la seed
         unsigned int iseed = (unsigned int)time(NULL);
         srand(iseed);
-        ////////////////////////////////////////////////////
 
         short int bytes_written;
         unsigned char* des_key = (unsigned char*)malloc(8 * sizeof(char));
-        generate_key(des_key);  /// UNSAFE ///
+        generate_key(des_key);
         bytes_written = fwrite(des_key, 1, DES_KEY_SIZE, key_file);
         if (bytes_written != DES_KEY_SIZE) {
             printf("Error writing key to output file.");
@@ -141,7 +140,8 @@ int main(int argc, char* argv[]) {
 
         start = clock();
 
-        // Aparentemente esta usando ECB
+        // El uso del modo ECB no es recomendado ya que filtra informacion del
+        // plaintext
         // Start reading input file, process and write to output file
         while (fread(data_block, 1, 8, input_file)) {
             block_count++;

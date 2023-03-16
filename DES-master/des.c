@@ -89,14 +89,13 @@ void print_char_as_binary(char input) {
     }
 }
 
-///////// UNSAFE /////////////////////////
 void generate_key(unsigned char* key) {
     int i;
     for (i = 0; i < 8; i++) {
+        // No es recomendable usar la funcion rand() para criptografia
         key[i] = rand() % 255;
     }
 }
-////////////////////////////////////////
 
 void print_key_set(key_set key_set) {
     int i;
@@ -133,6 +132,7 @@ void generate_sub_keys(unsigned char* main_key, key_set* key_sets) {
         key_sets[0].k[i] = 0;
     }
 
+    // PC1(K)
     for (i = 0; i < 56; i++) {
         shift_size = initial_key_permutaion[i];
         shift_byte = 0x80 >> ((shift_size - 1) % 8);
@@ -142,20 +142,21 @@ void generate_sub_keys(unsigned char* main_key, key_set* key_sets) {
         key_sets[0].k[i / 8] |= (shift_byte >> i % 8);
     }
 
+    // C_0
     for (i = 0; i < 3; i++) {
         key_sets[0].c[i] = key_sets[0].k[i];
     }
-
     key_sets[0].c[3] = key_sets[0].k[3] & 0xF0;
 
+    // D_0
     for (i = 0; i < 3; i++) {
         key_sets[0].d[i] = (key_sets[0].k[i + 3] & 0x0F) << 4;
         key_sets[0].d[i] |= (key_sets[0].k[i + 4] & 0xF0) >> 4;
     }
-
     key_sets[0].d[3] = (key_sets[0].k[6] & 0x0F) << 4;
 
     for (i = 1; i < 17; i++) {
+        // Copia C_i-1 y D_i-1 a C_i y D_i
         for (j = 0; j < 4; j++) {
             key_sets[i].c[j] = key_sets[i - 1].c[j];
             key_sets[i].d[j] = key_sets[i - 1].d[j];
@@ -204,6 +205,7 @@ void generate_sub_keys(unsigned char* main_key, key_set* key_sets) {
         key_sets[i].d[3] <<= shift_size;
         key_sets[i].d[3] |= (first_shift_bits >> (4 - shift_size));
 
+        // PC2(C_i, D_i)
         for (j = 0; j < 48; j++) {
             shift_size = sub_key_permutation[j];
             if (shift_size <= 28) {
